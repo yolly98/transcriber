@@ -4,10 +4,31 @@
     <meta charset="UTF-8">
     <title>Registrazione audio</title>
     <script>
+      var recording = false;
       var mediaRecorder;
       var chunks = [];
       
+      var interval = setInterval(() => {
+        let wave = document.getElementById('microphone_wave')
+        
+        if (wave.style.width == ''){
+          wave.style.width = '12vw';
+          wave.style.minWidth = '12vw';
+          wave.style.maxWidth = '16vw';
+        }
+        if (recording)
+          wave.style.borderColor = 'black';
+        else
+          wave.style.borderColor = 'transparent';
+        if (wave.style.width != wave.style.maxWidth)
+          wave.style.width = (parseInt(wave.style.width.replace('vw', '')) + 1) + 'vw';
+        else
+          wave.style.width = wave.style.minWidth
+        wave.style.height = wave.style.width;
+      }, 200);
+
       function startRecording() {
+        recording = true;
         chunks = [];
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(function(stream) {
@@ -22,6 +43,7 @@
     }
 
     function stopRecording() {
+        recording = false;
         mediaRecorder.stop();
         document.getElementById("recordButton").innerText = "RECORD";
         document.getElementById("recordButton").onclick = startRecording;
@@ -42,32 +64,83 @@
     }
     </script>
     <style>
-      #microphoneIcon {
-        width: 100px;
-        height: 100px;
-        margin: 50px auto;
-        border: 2px solid black;
+      #container{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #microphone_container {
+        width: 17vw;
+        height: 17vw;
+        display: flex;
+        justify-content: center;
+        align-items: center; 
+      }
+      #microphone_wave {
+        width: 12vw;
+        height: 12vw;
+        min-width: 12vw;
+        min-height: 12vw;
+        max-width: 16vw;
+        max-height: 16vw;
+        border: 0.5vw solid black;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-color: white;
+      }
+      #microphone_circle {
+        width: 10vw;
+        height: 10vw;
+        border: 0.5vw solid black;
         border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
       }
+      #server-url-container{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 2vw;
+      }
       #recordButton {
-        width: 100px;
-        height: 50px;
-        margin: 0 auto;
+        width: 10vw;
+        height: 5vw;
+        margin: 2vw;
+        border-radius: 2vw;
+        cursor: pointer;
+      }
+      #microphone_img {
+        width: 5vw;
+      }
+      #transcription {
+        margin: 1vw;
+        width: 80%;
+        text-align: left;
+        border: 0.1vw solid black;
+        border-radius: 1vw;
+        min-height: 10vw;
+        padding: 0.5vw;
       }
     </style>
   </head>
   <body>
-    <div id="microphoneIcon">
-      <img src="microphone"/>
+    <div id="container">
+      <div id="microphone_container">
+        <div id="microphone_wave">
+          <div id="microphone_circle">
+            <img id="microphone_img" src="microphone.png"/>
+          </div>
+        </div>
+      </div>
+      <div id="server-url-container">
+        <label>Server url</label>
+        <input type="text" id="server-url" value="localhost:4000"/>
+      </div>
+      <button id="recordButton" onclick="startRecording()">RECORD</button>
+      <p id="transcription"></p>
     </div>
-    <div>
-      <label>Server url</label>
-      <input type="text" id="server-url"/>
-    </div>
-    <button id="recordButton" onclick="startRecording()">RECORD</button>
-    <label id="transcription"></label>
   </body>
 </html>

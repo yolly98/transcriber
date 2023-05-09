@@ -63,8 +63,9 @@ def save_audio_to_wav(audio, filename):
 
 def translate_text(text, output_language):
     translator = Translator()
-    translated_text = translator.translate(text, dest=output_language).text
-    return translated_text
+    translated_text = translator.translate(text, dest=output_language)
+    print(translate_text)
+    return translated_text.text
 
 
 def get_from_microphone():
@@ -210,15 +211,23 @@ def upload_audio():
     file = request.files['audio']
     file.save('temp.wav')
     result = transcribe_audio('temp.wav')
+    print("-------- transcribed ---------")
+    print(result)
     if args.translate is not None:
+        print("-------- translated ---------")
         result = translate_text(result, args.translate)
+        print(result)
     return result
 
 if args.server is not None:
     listener(str(args.server))
 else:
     result = transcribe_audio(args.file)
+    print("-------- transcribed ---------")
+    print(result)
     if args.translate is not None:
+        print("-------- translated ---------")
         result = translate_text(result, args.translate)
+        print(result)
 
     print(result, file=open(args.out, 'w'))

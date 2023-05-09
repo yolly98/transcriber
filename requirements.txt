@@ -1,6 +1,11 @@
 noisereduce
 numpy
-speech_recognition
+SpeechRecognition
 pydub
 scipy
 tqdm
+wave
+googletrans
+pyaudio
+flask
+flask-cors

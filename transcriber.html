@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Registrazione audio</title>
+    <script>
+      var mediaRecorder;
+      var chunks = [];
+      
+      function startRecording() {
+        chunks = [];
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(stream) {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.addEventListener("dataavailable", function(event) {
+                    chunks.push(event.data);
+                });
+                mediaRecorder.start();
+                document.getElementById("recordButton").innerText = "STOP";
+                document.getElementById("recordButton").onclick = stopRecording;
+            });
+    }
+
+    function stopRecording() {
+        mediaRecorder.stop();
+        document.getElementById("recordButton").innerText = "RECORD";
+        document.getElementById("recordButton").onclick = startRecording;
+        mediaRecorder.addEventListener("stop", function() {
+            var blob = new Blob(chunks, { type: "audio/wav" });
+            console.log(blob.size)
+            var formData = new FormData();
+            formData.append("audio", blob, "recording.wav");
+            url = "http://" + document.getElementById('server-url').value + "/upload-audio";
+            fetch(url, { method: "POST", body: formData })
+                .then(response => response.text())
+                .then(result => {
+                    console.log(result)
+                    document.getElementById("transcription").innerText = result;
+                })
+                .catch(error => console.error(error));
+        });
+    }
+    </script>
+    <style>
+      #microphoneIcon {
+        width: 100px;
+        height: 100px;
+        margin: 50px auto;
+        border: 2px solid black;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #recordButton {
+        width: 100px;
+        height: 50px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="microphoneIcon">
+      <img src="microphone"/>
+    </div>
+    <div>
+      <label>Server url</label>
+      <input type="text" id="server-url"/>
+    </div>
+    <button id="recordButton" onclick="startRecording()">RECORD</button>
+    <label id="transcription"></label>
+  </body>
+</html>

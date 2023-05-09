@@ -4,6 +4,10 @@ import random
 import shutil
 import string
 import sys
+import wave
+import pyaudio
+from flask import Flask, request, send_file
+from flask_cors import CORS
 
 import noisereduce as nr
 import numpy as np
@@ -12,12 +16,20 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 from scipy.io import wavfile
 from tqdm import tqdm
+from googletrans import Translator
 
+
+app = Flask(__name__)
+CORS(app)
+
+def listener(_port):
+    app.run(host="0.0.0.0", port=_port, debug=False, threaded=True)
 
 def get_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--server", help="Set port to receive audio from a client", dest="server")
     parser.add_argument(
-        "-f", "--file", help="Path to audio file", dest="file", required=True)
+        "-f", "--file", help="Path to audio file", dest="file",)
     parser.add_argument("-nr", "--noise-reduction", dest="noise", help="Noise reduction:\n" +
                                                                        "    there are two levels:\n" +
                                                                        "        level 1 - Basic noise reduction (recommended)\n" +
@@ -29,6 +41,7 @@ def get_args():
                                                                     "    you have to provide a float " +
                                                                     "from 0 to 3 in the form int.dec")
     parser.add_argument("-l", "--language", dest="lang", help="Language (Default: en-EN)")
+    parser.add_argument("-t", "--translate", dest="translate", help="Translate to language")
 
     return parser.parse_args()
 
@@ -38,6 +51,31 @@ args = get_args()
 
 # Speech recognition object
 r = sr.Recognizer()
+
+
+def save_audio_to_wav(audio, filename):
+    with wave.open(filename, "wb") as wav_file:
+        wav_file.setnchannels(audio.channel_count)
+        wav_file.setsampwidth(audio.sample_width)
+        wav_file.setframerate(audio.sample_rate)
+        wav_file.writeframes(audio.get_wav_data())
+
+
+def translate_text(text, output_language):
+    translator = Translator()
+    translated_text = translator.translate(text, dest=output_language).text
+    return translated_text
+
+
+def get_from_microphone():
+    with sr.Microphone() as source:
+        print("[+] Starting recording...")
+        try:
+            audio = r.listen(source, timeout=5)
+        except Exception:
+            return
+
+        save_audio_to_wav(audio, 'temp.wav')
 
 
 # Noisereduce library for massive noise reduction using spectral gates
@@ -105,8 +143,13 @@ def process_chunk(chunk_filename):
 
 
 def transcribe_audio(path):
-    sound = AudioSegment.from_file(path)
 
+    print(args)
+    if path is None:
+        path = 'temp.wav'
+        get_from_microphone()
+
+    sound = AudioSegment.from_file(path)
     if args.iv:
         k = float(args.iv)
         if k <= 3 and k > 0:
@@ -156,7 +199,26 @@ def transcribe_audio(path):
     # Return text for all chunks
     return whole_text
 
+@app.route('/transcriber', methods=['GET'])
+def get_page():
+    return send_file('transcriber.html')
 
-result = transcribe_audio(args.file)
+@app.route('/upload-audio', methods=['POST'])
+def upload_audio():
+    if 'audio' not in request.files:
+        return "No file part"
+    file = request.files['audio']
+    file.save('temp.wav')
+    result = transcribe_audio('temp.wav')
+    if args.translate is not None:
+        result = translate_text(result, args.translate)
+    return result
 
-print(result, file=open(args.out, 'w'))
+if args.server is not None:
+    listener(str(args.server))
+else:
+    result = transcribe_audio(args.file)
+    if args.translate is not None:
+        result = translate_text(result, args.translate)
+
+    print(result, file=open(args.out, 'w'))

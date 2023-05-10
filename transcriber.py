@@ -202,6 +202,7 @@ def transcribe_audio(path):
 
 
 # for android client: go to 'chrome://flags/#unsafely-treat-insecure-origin-as-secure' in your browser and add tour server ip as secure
+# if you are using this server on wsl2, execute this command 'netsh interface portproxy add v4tov4 listenport=4000 listenaddress=0.0.0.0 connectport=4000 connectaddress=[WSL IP]' in powershell as administrator 
 @app.route('/transcriber', methods=['GET'])
 def get_page():
     return send_file('transcriber.html')

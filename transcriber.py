@@ -200,6 +200,8 @@ def transcribe_audio(path):
     # Return text for all chunks
     return whole_text
 
+
+# for android client: go to 'chrome://flags/#unsafely-treat-insecure-origin-as-secure' in your browser and add tour server ip as secure
 @app.route('/transcriber', methods=['GET'])
 def get_page():
     return send_file('transcriber.html')

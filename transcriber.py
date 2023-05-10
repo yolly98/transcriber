@@ -19,7 +19,7 @@ from tqdm import tqdm
 from googletrans import Translator
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='', static_folder='.')
 CORS(app)
 
 def listener(_port):
@@ -36,7 +36,7 @@ def get_args():
                                                                        "        level 2 - Massive noise reduction\n"
                         )
     parser.add_argument(
-        "-o", "--output", help="Path to output file", dest="out", required=True)
+        "-o", "--output", help="Path to output file", dest="out")
     parser.add_argument("-iv", "--increase-volume", dest="iv", help="Increase volume:\n" +
                                                                     "    you have to provide a float " +
                                                                     "from 0 to 3 in the form int.dec")

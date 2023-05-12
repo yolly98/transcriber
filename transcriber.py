@@ -6,6 +6,7 @@ import string
 import sys
 import wave
 import pyaudio
+import json
 from flask import Flask, request, send_file
 from flask_cors import CORS
 
@@ -209,9 +210,18 @@ def get_page():
 
 @app.route('/upload-audio', methods=['POST'])
 def upload_audio():
-    print("[+] received a file")
+
+    print("[+] received a request")
     if 'audio' not in request.files:
         return "No file part"
+    if 'data' not in request.files:
+        return "No options part"
+    
+    print(request.files)
+    
+    options = json.loads(request.files['data'].read().decode('utf-8'))
+    print(options)
+
     file = request.files['audio']
     file.save('temp.wav')
     result = transcribe_audio('temp.wav')

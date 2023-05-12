@@ -60,6 +60,13 @@
             console.log(blob.size)
             var formData = new FormData();
             formData.append("audio", blob, "recording.wav");
+            var data = {
+              "file-name": document.getElementById('file-name').value,
+              "input-language": document.getElementById('input-language').value,
+              "output-language": document.getElementById('output-language').value,
+              "duration": document.getElementById('duration').innerText
+            };
+            formData.append("data", new Blob([JSON.stringify(data)], { type: "application/json" }));
             url = "http://" + document.getElementById('server-url').value + "/upload-audio";
             fetch(url, { method: "POST", body: formData })
                 .then(response => response.text())

@@ -8,6 +8,8 @@
       var mediaRecorder;
       var chunks = [];
       var startTime = null;
+      var lastFileName = "";
+      var fileCounter = 1;
       
       var interval = setInterval(() => {
         let wave = document.getElementById('microphone_wave')
@@ -55,13 +57,22 @@
         mediaRecorder.stop();
         document.getElementById("recordButton").innerText = "RECORD";
         document.getElementById("recordButton").onclick = startRecording;
+        fileName = document.getElementById('file-name').value
+        if (fileName != "" && lastFileName == fileName){
+          fileName = fileName + fileCounter
+          fileCounter++
+        }
+        else
+          fileCounter = 1
+        lastFileName = document.getElementById('file-name').value
+
         mediaRecorder.addEventListener("stop", function() {
             var blob = new Blob(chunks, { type: "audio/wav" });
             console.log(blob.size)
             var formData = new FormData();
             formData.append("audio", blob, "recording.wav");
             var data = {
-              "file-name": document.getElementById('file-name').value,
+              "file-name": fileName,
               "input-language": document.getElementById('input-language').value,
               "output-language": document.getElementById('output-language').value,
               "duration": document.getElementById('duration').innerText
@@ -208,7 +219,7 @@
         </div>
         <div id="output-language-container">
           <label>Output Language</label>
-          <input type="text" id="output-language" value="en-EN"/>
+          <input type="text" id="output-language" value=""/>
         </div>
       </div>
       <button id="recordButton" onclick="startRecording()">RECORD</button>

@@ -222,9 +222,14 @@ def upload_audio():
     options = json.loads(request.files['data'].read().decode('utf-8'))
     print(options)
 
+    args.lang = options['input-language']
+    if options['output-language'] != "":
+        args.translate = options['output_language']
+
     file = request.files['audio']
     file.save('temp.wav')
     result = transcribe_audio('temp.wav')
+
     print("-------- transcribed ---------")
     print(result)
     if args.translate is not None:
@@ -233,6 +238,10 @@ def upload_audio():
         print(result)
 
     print("[+] file processed and sent result")
+
+    if options['file-name'] != "":
+        print(result, file=open(os.path.join('data',f"{options['file-name']}.txt"), 'w'))
+
     return result
 
 if args.server is not None:

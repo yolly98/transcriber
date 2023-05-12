@@ -255,4 +255,4 @@ else:
         result = translate_text(result, args.translate)
         print(result)
 
-    print(result, file=open(args.out, 'w'))
+    print(result, file=open(os.path.join('data', args.out), 'w'))

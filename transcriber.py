@@ -209,6 +209,7 @@ def get_page():
 
 @app.route('/upload-audio', methods=['POST'])
 def upload_audio():
+    print("[+] received a file")
     if 'audio' not in request.files:
         return "No file part"
     file = request.files['audio']
@@ -220,6 +221,8 @@ def upload_audio():
         print("-------- translated ---------")
         result = translate_text(result, args.translate)
         print(result)
+
+    print("[+] file processed and sent result")
     return result
 
 if args.server is not None:

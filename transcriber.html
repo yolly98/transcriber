@@ -7,10 +7,16 @@
       var recording = false;
       var mediaRecorder;
       var chunks = [];
+      var startTime = null;
       
       var interval = setInterval(() => {
         let wave = document.getElementById('microphone_wave')
         
+        if (recording){
+          let time = new Date().getTime()
+          let duration = Math.floor((time - startTime) / 1000)
+          document.getElementById('duration').innerText = Math.floor(duration / 60) + ":" + duration%60
+        }
         if (wave.style.width == ''){
           wave.style.width = '12vw';
           wave.style.minWidth = '12vw';
@@ -29,6 +35,8 @@
 
       function startRecording() {
         recording = true;
+        startTime = new Date().getTime()
+        document.getElementById('duration').innerText = 0
         chunks = [];
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(function(stream) {
@@ -99,9 +107,38 @@
         justify-content: center;
         align-items: center;
       }
+      #duration{
+        margin: 1rem;
+        font-weight: bold;
+        font-size: 2vw;
+      }
+      #options-container{
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: center;
+      }
       #server-url-container{
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        align-items: center;
+        margin: 2vw;
+      }
+      #file-name-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin: 2vw;
+      }
+      #input-language-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin: 2vw;
+      }
+      #output-language-container{
+        display: flex;
+        flex-direction: row;
         align-items: center;
         margin: 2vw;
       }
@@ -124,6 +161,19 @@
         min-height: 10vw;
         padding: 0.5vw;
       }
+      #server-url{
+        margin-left: 1vw
+      }
+      #file-name{
+        margin-left: 1vw
+      }
+      #input-language{
+        margin-left: 1vw
+      }
+      #output-language{
+        margin-left: 1vw
+      }
+
     </style>
   </head>
   <body>
@@ -135,9 +185,24 @@
           </div>
         </div>
       </div>
-      <div id="server-url-container">
-        <label>Server url</label>
-        <input type="text" id="server-url" value="localhost:4000"/>
+      <label id="duration"></label>
+      <div id="options-container">
+        <div id="server-url-container">
+          <label>Server url</label>
+          <input type="text" id="server-url" value="localhost:4000"/>
+        </div>
+        <div id ="file-name-container">
+          <label>File Name</label>
+          <input type="text" id="file-name" value=""/>
+        </div>
+        <div id="input-language-container">
+          <label>Input Language</label>
+          <input type="text" id="input-language" value="en-EN"/>
+        </div>
+        <div id="output-language-container">
+          <label>Output Language</label>
+          <input type="text" id="output-language" value="en-EN"/>
+        </div>
       </div>
       <button id="recordButton" onclick="startRecording()">RECORD</button>
       <p id="transcription"></p>

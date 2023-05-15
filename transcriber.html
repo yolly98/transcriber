@@ -10,6 +10,7 @@
       var startTime = null;
       var lastFileName = "";
       var fileCounter = 1;
+      var analyserInterval = null
       
       var interval = setInterval(() => {
         let wave = document.getElementById('microphone_wave')
@@ -40,9 +41,23 @@
         startTime = new Date().getTime()
         document.getElementById('duration').innerText = 0
         chunks = [];
+        var audioContext = new AudioContext();
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(function(stream) {
                 mediaRecorder = new MediaRecorder(stream);
+
+                var source = audioContext.createMediaStreamSource(stream);
+                var analyser = audioContext.createAnalyser();
+                source.connect(analyser);
+                var bufferLength = analyser.fftSize;
+                var dataArray = new Float32Array(bufferLength);
+                analyserInterval = setInterval(function() {
+                  analyser.getFloatTimeDomainData(dataArray);
+                  let rms = getRMS(dataArray);
+                  let db = 20 * Math.log10(rms) + 120;
+                  document.getElementById("test-db").innerHTML = db;
+                }, 100);
+
                 mediaRecorder.addEventListener("dataavailable", function(event) {
                     chunks.push(event.data);
                 });
@@ -52,9 +67,21 @@
             });
     }
 
+    function getRMS(data) {
+      var sumOfSquares = 0;
+      for (var i = 0; i < data.length; i++) {
+        sumOfSquares += data[i] * data[i];
+      }
+      var mean = sumOfSquares / data.length;
+      var rootMeanSquare = Math.sqrt(mean);
+      return rootMeanSquare;
+    }
+
     function stopRecording() {
+        
         recording = false;
         mediaRecorder.stop();
+        clearInterval(analyserInterval)
         document.getElementById("recordButton").innerText = "RECORD";
         document.getElementById("recordButton").onclick = startRecording;
         fileName = document.getElementById('file-name').value
@@ -86,6 +113,20 @@
                     document.getElementById("transcription").innerText = result;
                 })
                 .catch(error => console.error(error));
+        });
+    }
+
+    function cancelRecording() {
+        
+        recording = false;
+        mediaRecorder.stop();
+        clearInterval(analyserInterval)
+        document.getElementById("recordButton").innerText = "RECORD";
+        document.getElementById("recordButton").onclick = startRecording;
+
+        mediaRecorder.addEventListener("stop", function() {
+            var blob = new Blob(chunks, { type: "audio/wav" });
+            console.log(blob.size)
         });
     }
     </script>
@@ -160,7 +201,7 @@
         align-items: center;
         margin: 2vw;
       }
-      #recordButton {
+      #recordButton, #cancelButton {
         width: 10vw;
         height: 5vw;
         margin: 2vw;
@@ -203,6 +244,7 @@
           </div>
         </div>
       </div>
+      <label id="test-db"></label>
       <label id="duration"></label>
       <div id="options-container">
         <div id="server-url-container">
@@ -223,6 +265,7 @@
         </div>
       </div>
       <button id="recordButton" onclick="startRecording()">RECORD</button>
+      <button id="cancelButton" onclick="cancelRecording()">CANCEL</button>
       <p id="transcription"></p>
     </div>
   </body>

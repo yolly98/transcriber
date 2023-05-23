@@ -224,7 +224,7 @@ def upload_audio():
 
     args.lang = options['input-language']
     if options['output-language'] != "":
-        args.translate = options['output_language']
+        args.translate = options['output-language']
 
     file = request.files['audio']
     file.save('temp.wav')
